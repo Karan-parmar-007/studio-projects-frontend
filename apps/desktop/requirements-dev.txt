@@ -1,0 +1,4 @@
+pytest==8.4.2
+pyinstaller==6.11.1
+sounddevice==0.5.1
+pynput==1.7.7

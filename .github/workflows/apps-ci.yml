@@ -1,0 +1,50 @@
+# Studio Flow apps (apps/desktop, apps/android): desktop unit tests and a debug APK
+# on every push/PR that touches them.
+
+name: Apps test
+
+on:
+  push:
+    branches: [master]
+    paths: ["apps/**", ".github/workflows/apps-ci.yml"]
+  pull_request:
+    paths: ["apps/**", ".github/workflows/apps-ci.yml"]
+  workflow_dispatch:
+
+jobs:
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install pytest==8.4.2
+
+      - name: Desktop tests
+        working-directory: apps/desktop
+        run: python -m pytest -q tests
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build debug APK
+        working-directory: apps/android
+        run: ./gradlew --no-daemon assembleDebug

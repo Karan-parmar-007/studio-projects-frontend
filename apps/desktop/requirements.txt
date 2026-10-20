@@ -1,0 +1,2 @@
+# Runtime: standard library only (tkinter, ctypes, urllib, wave).
+# Linux also needs system tools: arecord (alsa-utils), wl-copy or xclip, wtype or xdotool.

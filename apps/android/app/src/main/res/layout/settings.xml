@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0a192f"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Studio Flow"
+            android:textColor="#64ffda"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Allow the microphone. Enable Studio Flow under Settings, System, Languages, On-screen keyboard. Paste the API key from Studio. Hindi is written in Latin letters unless you turn on Devanagari."
+            android:textColor="#ccd6f6"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/setupStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="#64ffda"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/apiKey"
+            style="@style/Field"
+            android:hint="API key"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/studioUrl"
+            style="@style/Field"
+            android:hint="Studio address"
+            android:inputType="textUri" />
+
+        <CheckBox
+            android:id="@+id/devanagari"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Hindi in Devanagari"
+            android:textColor="#ccd6f6" />
+
+        <Button
+            android:id="@+id/save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Save"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/allowMic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Allow microphone"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/keyboardSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable this keyboard"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/pickKeyboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Switch to Studio Flow"
+            android:textAllCaps="false" />
+    </LinearLayout>
+</ScrollView>

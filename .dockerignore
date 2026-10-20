@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+dist
+apps
+.env
+.env.*
+!.env.example
+*.md
+.vscode
+*.tsbuildinfo
