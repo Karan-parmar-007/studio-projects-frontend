@@ -5,7 +5,11 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-// Optional release signing from CI secrets (see .github/workflows/release.yml).
+// The server every app request goes to. Users never see or change it. For a test build
+// against another server: ./gradlew assembleDebug -PstudioUrl=http://192.168.0.10:8001
+val studioUrl: String = (project.findProperty("studioUrl") as String?) ?: "https://studio.karanparmar.in"
+
+// Optional release signing: put release.keystore + keystore.properties next to this project.
 val keystoreFile = rootProject.file("release.keystore")
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
@@ -22,6 +26,13 @@ android {
         targetSdk = 34
         versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
         versionName = (project.findProperty("versionName") as String?) ?: "1.0"
+        buildConfigField("String", "STUDIO_URL", "\"$studioUrl\"")
+        // Plain http is allowed only for a test build pointed at an http server.
+        manifestPlaceholders["cleartext"] = studioUrl.startsWith("http://").toString()
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     signingConfigs {

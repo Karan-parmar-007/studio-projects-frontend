@@ -17,10 +17,9 @@ Dev proxies: `/api/auth` → SSO backend on 8002, `/api/studio` → Studio API o
 
 ## Apps
 
-`apps/desktop` (Python, Windows/Linux) and `apps/android` (keyboard) are the
-Studio Flow clients. See `apps/README.md`. `apps-ci.yml` tests them, and a tag
-`apps-vX.Y.Z` publishes builds to a GitHub Release (`apps-release.yml`). The site
-serves copies from `public/downloads/`.
+`apps/desktop` (Windows/Linux) and `apps/android` (floating bubble) are the Studio Flow
+clients. See `apps/README.md`. `apps-ci.yml` runs the desktop tests; installers are built
+on this PC with `apps/release.sh` and uploaded to Studio, which serves them from Garage.
 
 ## Build
 

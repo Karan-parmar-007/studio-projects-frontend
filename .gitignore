@@ -26,3 +26,7 @@ apps/android/keystore.properties
 
 # App binaries are served from Garage by the backend, never committed
 public/downloads/
+
+# Local app builds and the upload token
+apps/out/
+apps/.release.env

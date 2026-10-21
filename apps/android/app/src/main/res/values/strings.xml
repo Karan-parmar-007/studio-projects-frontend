@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Studio Flow</string>
-    <string name="subtype_label">Studio Flow</string>
+    <string name="accessibility_description">Shows the Studio Flow bubble next to the text box you are typing in, and writes your dictated text into that box. Studio Flow only reads which text box is focused and its text, to insert at the cursor. Nothing is recorded unless you tap the bubble.</string>
 </resources>

@@ -184,7 +184,7 @@ export function KeyPage() {
               </div>
               <p className="text-sm font-medium text-lightest-slate">No API key created yet</p>
               <p className="text-xs text-slate max-w-sm mx-auto">
-                Generate your key to start using WhisperFlow on the desktop app, Android keyboard, or via REST API.
+                Generate your key to start using WhisperFlow on the desktop app, the Android bubble, or via the REST API.
               </p>
               <button
                 type="button"

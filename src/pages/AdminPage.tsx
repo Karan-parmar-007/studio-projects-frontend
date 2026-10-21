@@ -40,12 +40,12 @@ const PLATFORM_CONFIGS = [
   },
   {
     platform: 'android' as const,
-    label: 'Android Custom Keyboard',
+    label: 'Android Bubble App',
     extBadge: '.apk',
     accept: '.apk',
     defaultFilename: 'StudioFlow.apk',
     icon: Smartphone,
-    desc: 'Custom IME dictation keyboard package for Android devices.',
+    desc: 'Floating dictation bubble for Android phones (APK).',
   },
   {
     platform: 'linux' as const,

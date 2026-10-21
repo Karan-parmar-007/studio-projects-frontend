@@ -1,5 +1,6 @@
-# Studio Flow apps (apps/desktop, apps/android): desktop unit tests and a debug APK
-# on every push/PR that touches them.
+# Studio Flow apps: desktop unit tests on every push/PR that touches apps/.
+# Nothing is built here. Installers are built on Karan's PC and uploaded with
+# apps/release.sh (see apps/README.md).
 
 name: Apps test
 
@@ -29,22 +30,3 @@ jobs:
       - name: Desktop tests
         working-directory: apps/desktop
         run: python -m pytest -q tests
-
-  android:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-
-      - name: Build debug APK
-        working-directory: apps/android
-        run: ./gradlew --no-daemon assembleDebug

@@ -19,7 +19,9 @@ from flowlib import format_text, transcribe
 from hotkeys import mask, normalize, same
 from record import Mic
 
-DEFAULT_STUDIO = "https://studio.karanparmar.in"
+# Every request goes to the Studio server; users only enter their API key.
+# STUDIO_URL in the environment points a dev build elsewhere; it is never shown in the UI.
+STUDIO = (os.environ.get("STUDIO_URL") or "https://studio.karanparmar.in").strip().rstrip("/")
 MAX_SECONDS = 300
 CHUNK_SECONDS = 20
 
@@ -42,12 +44,11 @@ def _chord(value) -> dict | None:
 
 def load_settings() -> dict:
     path = settings_path()
-    data = {"api_key": "", "script": "roman", "studio": DEFAULT_STUDIO, "record": None, "stop": None}
+    data = {"api_key": "", "script": "roman", "record": None, "stop": None}
     if path.exists():
         stored = json.loads(path.read_text())
         data["api_key"] = stored.get("api_key") or ""
         data["script"] = stored.get("script") or "roman"
-        data["studio"] = (stored.get("studio") or DEFAULT_STUDIO).strip().rstrip("/")
         data["record"] = _chord(stored.get("record"))
         data["stop"] = _chord(stored.get("stop"))
     return data
@@ -59,7 +60,6 @@ def save_settings(data: dict) -> None:
             {
                 "api_key": data.get("api_key", ""),
                 "script": data.get("script", "roman"),
-                "studio": data.get("studio") or DEFAULT_STUDIO,
                 "record": data.get("record"),
                 "stop": data.get("stop"),
             },
@@ -257,9 +257,6 @@ class App:
         self.key_entry = tk.Entry(self.root, bg="#112240", fg=accent, relief="flat", font=("Consolas", 11))
         self.key_entry.insert(0, self.settings.get("api_key") or "")
         self.key_entry.pack(fill="x", padx=16, pady=8)
-        self.studio_entry = tk.Entry(self.root, bg="#112240", fg=accent, relief="flat", font=("Consolas", 11))
-        self.studio_entry.insert(0, self.settings.get("studio") or DEFAULT_STUDIO)
-        self.studio_entry.pack(fill="x", padx=16, pady=4)
         self._chord_row("Record", self.record_label, "record")
         self._chord_row("Stop", self.stop_label, "stop")
         row = tk.Frame(self.root, bg=bg)
@@ -358,17 +355,12 @@ class App:
         threading.Thread(target=work, daemon=True).start()
 
     def _studio(self) -> str:
-        value = str(self.settings.get("studio") or DEFAULT_STUDIO).strip().rstrip("/")
-        return value if value.startswith("http") else DEFAULT_STUDIO
+        return STUDIO
 
     def _save(self) -> None:
         api_key = self.key_entry.get().strip()
-        studio = self.studio_entry.get().strip().rstrip("/") or DEFAULT_STUDIO
         if not api_key:
             self.settings_status.configure(text="Paste the API key from Studio first.")
-            return
-        if not studio.startswith("http"):
-            self.settings_status.configure(text="The Studio address needs to start with http.")
             return
         if not self.record:
             self.settings_status.configure(text="Choose the record keys.")
@@ -376,7 +368,6 @@ class App:
         self.settings = {
             "api_key": api_key,
             "script": self.script.get(),
-            "studio": studio,
             "record": self.record,
             "stop": self.stop,
         }

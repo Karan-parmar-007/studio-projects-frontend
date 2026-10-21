@@ -8,22 +8,7 @@
         <item name="android:colorAccent">#64ffda</item>
     </style>
 
-    <style name="Key">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">46dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_margin">2dp</item>
-        <item name="android:background">#112240</item>
-        <item name="android:textColor">#ccd6f6</item>
-        <item name="android:textAllCaps">false</item>
-        <item name="android:focusable">false</item>
-        <item name="android:textSize">16sp</item>
-    </style>
 
-    <style name="Mic" parent="Key">
-        <item name="android:textColor">#64ffda</item>
-        <item name="android:textStyle">bold</item>
-    </style>
 
     <style name="Field">
         <item name="android:layout_width">match_parent</item>
@@ -33,5 +18,11 @@
         <item name="android:background">#112240</item>
         <item name="android:textColor">#64ffda</item>
         <item name="android:textColorHint">#8892b0</item>
+    </style>
+    <style name="Action">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:textAllCaps">false</item>
     </style>
 </resources>

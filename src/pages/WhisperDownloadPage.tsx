@@ -92,7 +92,7 @@ export function WhisperDownloadPage() {
             </h1>
 
             <p className="text-base sm:text-lg leading-relaxed text-slate">
-              Install the native background client on your computer or the custom IME keyboard on your Android phone. Both clients connect to your self-hosted Studio pipeline using a single API key.
+              Install the native background client on your computer or the floating bubble on your Android phone. Both clients connect to your self-hosted Studio pipeline using a single API key.
             </p>
           </div>
 
@@ -140,7 +140,7 @@ export function WhisperDownloadPage() {
             }`}
           >
             <Smartphone className="h-4 w-4" />
-            <span>Android Keyboard</span>
+            <span>Android Bubble</span>
             {androidItem && (
               <span className="rounded-full bg-green/20 px-1.5 py-0.2 font-mono text-[9px] text-green">
                 v{androidItem.version || '1.0'}
@@ -270,7 +270,7 @@ export function WhisperDownloadPage() {
           </div>
         )}
 
-        {/* Tab 2: Android Keyboard */}
+        {/* Tab 2: Android Bubble */}
         {platformTab === 'android' && (
           <div className="rounded-3xl border border-navy-border bg-light-navy/50 p-6 sm:p-10 space-y-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 pb-6 border-b border-navy-border/60">
@@ -279,10 +279,10 @@ export function WhisperDownloadPage() {
                   <span className="rounded-md bg-green/10 border border-green/30 px-2 py-0.5 font-mono text-xs font-bold text-green">
                     Android
                   </span>
-                  <h2 className="text-2xl font-bold text-lightest-slate">StudioFlow Android Keyboard</h2>
+                  <h2 className="text-2xl font-bold text-lightest-slate">StudioFlow for Android</h2>
                 </div>
                 <p className="max-w-2xl text-sm leading-relaxed text-slate">
-                  Native Android Input Method (IME) keyboard. Dictate directly into WhatsApp, Telegram, Slack, Gmail, or your browser notes by tapping the mic key.
+                  A floating bubble that appears next to whatever you are typing in. Keep your own keyboard: tap the bubble, speak, tap again, and the text lands in WhatsApp, Telegram, Slack, Gmail, or your browser.
                 </p>
               </div>
 
@@ -295,7 +295,7 @@ export function WhisperDownloadPage() {
                   <Download className="h-4 w-4" />
                   <span>
                     Download {androidItem?.filename || 'APK'} (
-                    {androidItem ? `${formatBytes(androidItem.size)} · v${androidItem.version}` : '814 KB'})
+                    {androidItem ? `${formatBytes(androidItem.size)} · v${androidItem.version}` : 'APK'})
                   </span>
                 </a>
               </div>
@@ -320,20 +320,20 @@ export function WhisperDownloadPage() {
                 <div className="rounded-2xl border border-navy-border bg-navy/60 p-5 space-y-2">
                   <div className="flex items-center gap-2 font-mono text-xs text-green font-semibold">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green/10 border border-green/30">2</span>
-                    <span>Enable Keyboard</span>
+                    <span>Turn On the Bubble</span>
                   </div>
                   <p className="text-xs text-slate leading-relaxed">
-                    Go to <strong>Settings &gt; System &gt; Languages &gt; On-screen keyboard</strong>, tap "Manage on-screen keyboards", and toggle on <strong>Studio Flow</strong>.
+                    Open Studio Flow and tap <strong>Open Accessibility settings</strong>, then switch on <strong>Studio Flow</strong>. If the switch is greyed out, use <strong>App info &gt; ⋮ &gt; Allow restricted settings</strong> first.
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-navy-border bg-navy/60 p-5 space-y-2">
                   <div className="flex items-center gap-2 font-mono text-xs text-green font-semibold">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green/10 border border-green/30">3</span>
-                    <span>Paste Key & Dictate</span>
+                    <span>Paste Key & Start</span>
                   </div>
                   <p className="text-xs text-slate leading-relaxed">
-                    Open the Studio Flow app icon, paste your API key, grant mic permissions. Switch to Studio Flow when typing to dictate with one tap!
+                    In the Studio Flow app, paste your API key, allow the microphone, and tap Start. Then tap the bubble next to any text box to dictate.
                   </p>
                 </div>
               </div>

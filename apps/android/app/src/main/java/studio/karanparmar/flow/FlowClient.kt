@@ -9,12 +9,8 @@ import java.net.URL
 data class Take(val text: String, val note: String)
 
 object FlowClient {
-    const val DEFAULT_STUDIO = "https://studio.karanparmar.in"
-
-    fun studioBase(context: android.content.Context): String {
-        val saved = prefs(context).getString("studio", DEFAULT_STUDIO).orEmpty().trim().trimEnd('/')
-        return if (saved.startsWith("http")) saved else DEFAULT_STUDIO
-    }
+    /** Every request goes to the Studio server. Users only enter their API key. */
+    val STUDIO: String = BuildConfig.STUDIO_URL.trimEnd('/')
 
     fun dictate(
         studio: String,

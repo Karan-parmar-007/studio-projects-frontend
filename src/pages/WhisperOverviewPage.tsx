@@ -144,7 +144,7 @@ export function WhisperOverviewPage() {
               </div>
               <h3 className="text-base font-bold text-lightest-slate">Native App Trigger</h3>
               <p className="text-xs leading-relaxed text-slate">
-                Press your custom hotkey on Windows/Linux or tap the mic on the Android IME keyboard. Raw 16kHz audio is buffered locally.
+                Press your custom hotkey on Windows/Linux or tap the floating bubble on Android. Raw 16kHz audio is buffered locally.
               </p>
             </div>
 
@@ -177,7 +177,7 @@ export function WhisperOverviewPage() {
               </div>
               <h3 className="text-base font-bold text-lightest-slate">Instant Typing</h3>
               <p className="text-xs leading-relaxed text-slate">
-                The formatted text is instantly simulated as keystrokes or committed into the Android input field, without window stealing.
+                The formatted text is instantly simulated as keystrokes or written into the focused Android text box, without stealing focus.
               </p>
             </div>
           </div>
@@ -259,7 +259,7 @@ export function WhisperOverviewPage() {
               }`}
             >
               <Smartphone className="h-4 w-4" />
-              <span>Android Keyboard (APK)</span>
+              <span>Android Bubble (APK)</span>
             </button>
           </div>
 
@@ -294,9 +294,9 @@ export function WhisperOverviewPage() {
             <div className="rounded-2xl border border-navy-border bg-light-navy/50 p-6 sm:p-8 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h3 className="text-xl font-bold text-lightest-slate">StudioFlow Android Keyboard</h3>
+                  <h3 className="text-xl font-bold text-lightest-slate">StudioFlow for Android</h3>
                   <p className="mt-1 text-xs text-slate">
-                    Custom Android IME input keyboard. Dictate into any app with a single microphone tap.
+                    A floating bubble beside any text box. Keep your own keyboard and dictate into any app with one tap.
                   </p>
                 </div>
                 <a
@@ -312,8 +312,8 @@ export function WhisperOverviewPage() {
                 <h4 className="font-mono text-xs font-semibold text-green">Setup Instructions:</h4>
                 <ol className="list-decimal list-inside space-y-2 text-xs leading-relaxed text-slate pl-2">
                   <li>Download and install <span className="font-mono text-light-slate">StudioFlow.apk</span> on your Android phone.</li>
-                  <li>In phone <span className="font-mono text-light-slate">Settings &gt; System &gt; Languages &gt; On-screen keyboard</span>, enable Studio Flow.</li>
-                  <li>Open the Studio Flow app, paste your API key, and grant microphone permissions.</li>
+                  <li>Open Studio Flow, tap <span className="font-mono text-light-slate">Open Accessibility settings</span>, and switch on Studio Flow.</li>
+                  <li>Paste your API key, allow the microphone, and tap Start. The bubble appears next to any text box.</li>
                 </ol>
               </div>
             </div>

@@ -1,5 +1,5 @@
 # Type-check and build the site on every push/PR (app-only changes are skipped;
-# see apps-ci.yml and apps-release.yml). On master: publish public GHCR image,
+# see apps-ci.yml; the apps are built locally with apps/release.sh). On master: publish public GHCR image,
 # pull on VPS, swap this service only (compose --no-deps), prune old images.
 # Backend is never recreated from this workflow.
 #

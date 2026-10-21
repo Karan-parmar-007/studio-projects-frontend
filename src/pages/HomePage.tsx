@@ -17,7 +17,7 @@ const steps = [
     n: '02',
     icon: Key,
     title: 'Generate one key',
-    body: 'A single API key powers all Studio products across your Android keyboard, desktop client, or custom code.',
+    body: 'A single API key powers all Studio products across the Android bubble, the desktop app, or your own code.',
   },
   {
     n: '03',

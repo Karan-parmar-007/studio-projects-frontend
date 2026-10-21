@@ -21,66 +21,107 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Allow the microphone. Enable Studio Flow under Settings, System, Languages, On-screen keyboard. Paste the API key from Studio. Hindi is written in Latin letters unless you turn on Devanagari."
+            android:layout_marginTop="10dp"
+            android:text="A bubble appears next to any text box. Tap it, speak, tap again, and the text is written into the box. Keep using your normal keyboard."
             android:textColor="#ccd6f6"
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/setupStatus"
+            android:id="@+id/checklist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
+            android:background="#112240"
+            android:lineSpacingExtra="6dp"
+            android:padding="14dp"
+            android:textColor="#ccd6f6"
+            android:textSize="15sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="1. Your API key"
             android:textColor="#64ffda"
             android:textSize="14sp" />
 
         <EditText
             android:id="@+id/apiKey"
             style="@style/Field"
-            android:hint="API key"
-            android:inputType="text" />
-
-        <EditText
-            android:id="@+id/studioUrl"
-            style="@style/Field"
-            android:hint="Studio address"
-            android:inputType="textUri" />
+            android:hint="sk-studio_…"
+            android:inputType="textNoSuggestions" />
 
         <CheckBox
             android:id="@+id/devanagari"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Hindi in Devanagari"
+            android:layout_marginTop="6dp"
+            android:text="Write Hindi in Devanagari"
             android:textColor="#ccd6f6" />
 
         <Button
             android:id="@+id/save"
+            style="@style/Action"
+            android:text="Save" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Save"
-            android:textAllCaps="false" />
+            android:layout_marginTop="18dp"
+            android:text="2. Allow the microphone"
+            android:textColor="#64ffda"
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/allowMic"
+            style="@style/Action"
+            android:text="Allow microphone" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Allow microphone"
-            android:textAllCaps="false" />
+            android:layout_marginTop="18dp"
+            android:text="3. Turn on the bubble"
+            android:textColor="#64ffda"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Open Accessibility, choose Studio Flow, and switch it on. If the switch is greyed out (apps installed from a file on Android 13+), tap App info below, open the ⋮ menu, choose Allow restricted settings, and try again."
+            android:textColor="#8892b0"
+            android:textSize="13sp" />
 
         <Button
-            android:id="@+id/keyboardSettings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enable this keyboard"
-            android:textAllCaps="false" />
+            android:id="@+id/turnOnBubble"
+            style="@style/Action"
+            android:text="Open Accessibility settings" />
 
         <Button
-            android:id="@+id/pickKeyboard"
+            android:id="@+id/appInfo"
+            style="@style/Action"
+            android:text="App info" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Switch to Studio Flow"
-            android:textAllCaps="false" />
+            android:layout_marginTop="18dp"
+            android:text="4. Start"
+            android:textColor="#64ffda"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/startStop"
+            style="@style/Action"
+            android:text="Start Studio Flow" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="While it runs you will see a small Studio Flow notification. That is what lets Android give the bubble the microphone."
+            android:textColor="#8892b0"
+            android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>
