@@ -10,10 +10,18 @@ import { WhisperOverviewPage } from '@/pages/WhisperOverviewPage'
 import { WhisperDocsPage } from '@/pages/WhisperDocsPage'
 import { WhisperPlaygroundPage } from '@/pages/WhisperPlaygroundPage'
 import { WhisperDownloadPage } from '@/pages/WhisperDownloadPage'
+import { LlmOverviewPage } from '@/pages/LlmOverviewPage'
+import { LlmPlaygroundPage } from '@/pages/LlmPlaygroundPage'
+import { LlmDocsPage } from '@/pages/LlmDocsPage'
+import { GmapsOverviewPage } from '@/pages/GmapsOverviewPage'
+import { GmapsPlaygroundPage } from '@/pages/GmapsPlaygroundPage'
+import { GmapsDocsPage } from '@/pages/GmapsDocsPage'
+import { ServiceCatalogProvider } from '@/lib/services'
 
 export function App() {
   return (
     <AuthProvider>
+      <ServiceCatalogProvider>
       <BrowserRouter>
         <Routes>
           {/* Public Home Page */}
@@ -66,6 +74,54 @@ export function App() {
             element={
               <ProtectedRoute>
                 <WhisperDownloadPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/llm"
+            element={
+              <ProtectedRoute>
+                <LlmOverviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/llm/playground"
+            element={
+              <ProtectedRoute>
+                <LlmPlaygroundPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/llm/docs"
+            element={
+              <ProtectedRoute>
+                <LlmDocsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/gmaps"
+            element={
+              <ProtectedRoute>
+                <GmapsOverviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/gmaps/playground"
+            element={
+              <ProtectedRoute>
+                <GmapsPlaygroundPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/gmaps/docs"
+            element={
+              <ProtectedRoute>
+                <GmapsDocsPage />
               </ProtectedRoute>
             }
           />
@@ -138,11 +194,16 @@ export function App() {
             element={
               <Shell>
                 <div className="flex min-h-[50vh] flex-col items-center justify-center text-center px-4">
-                  <p className="font-mono text-sm text-green">404 · Page Not Found</p>
-                  <p className="mt-2 text-sm text-slate">That page does not exist in Studio.</p>
+                  <span className="rounded-full bg-green/10 border border-green/30 px-3 py-1 font-mono text-xs text-green font-semibold">
+                    404 · Page Not Found
+                  </span>
+                  <h2 className="mt-4 text-3xl font-extrabold text-white">Lost in Space</h2>
+                  <p className="mt-2 text-sm text-slate max-w-sm">
+                    The requested page does not exist in the Studio ecosystem.
+                  </p>
                   <Link
                     to="/"
-                    className="mt-6 inline-flex items-center gap-2 rounded-lg bg-green px-5 py-2.5 font-mono text-xs font-semibold text-navy hover:bg-green/90"
+                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-green px-6 py-3 text-xs font-semibold text-ink hover:bg-green/90 transition-all shadow-md active:scale-95"
                   >
                     Return to Studio Home →
                   </Link>
@@ -152,6 +213,7 @@ export function App() {
           />
         </Routes>
       </BrowserRouter>
+      </ServiceCatalogProvider>
     </AuthProvider>
   )
 }

@@ -4,34 +4,43 @@ import {
   Mic,
   Square,
   Play,
-  Sparkles,
   BookOpen,
   FileText,
   Download,
   AlertCircle,
   CheckCircle2,
+  Upload,
+  RotateCcw,
+  Volume2,
+  FileAudio,
+  Info,
 } from 'lucide-react'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { CopyButton } from '@/components/CopyButton'
 import { ApiError, runAndWait } from '@/lib/api'
 
-type Phase = 'idle' | 'recording' | 'transcribing' | 'formatting' | 'done'
+type Phase = 'idle' | 'recording' | 'transcribing' | 'done'
+type PlaygroundMode = 'voice' | 'upload'
 
 export function WhisperPlaygroundPage() {
   const [phase, setPhase] = useState<Phase>('idle')
-  const [mode, setMode] = useState<'voice' | 'text'>('voice')
-  const [script, setScript] = useState<'roman' | 'devanagari'>('roman')
-  const [tone, setTone] = useState<'whatsapp' | 'work' | 'points'>('whatsapp')
-  const [inputText, setInputText] = useState('point 1 server ghar pe rahega point 2 keyboard android ke liye hai')
+  const [mode, setMode] = useState<PlaygroundMode>('voice')
   const [transcript, setTranscript] = useState('')
   const [result, setResult] = useState('')
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [seconds, setSeconds] = useState(0)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
   const recorder = useRef<MediaRecorder | null>(null)
   const chunks = useRef<Blob[]>([])
   const timer = useRef<number | null>(null)
+
+  const isSecureOrLocal =
+    typeof window !== 'undefined' &&
+    (window.isSecureContext ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1')
 
   useEffect(() => () => stopTimer(), [])
 
@@ -42,7 +51,13 @@ export function WhisperPlaygroundPage() {
 
   function fail(err: unknown, fallback: string) {
     if (err instanceof ApiError) {
-      setError(err.message)
+      if (err.status === 503 || err.message.includes('not working') || err.message.includes('offline')) {
+        setError(
+          'Model gateway is offline or unreachable. Ensure the gateway service is running on port 8003 or check model tunnels in Admin.',
+        )
+      } else {
+        setError(err.message)
+      }
     } else {
       setError(err instanceof Error ? err.message : fallback)
     }
@@ -55,6 +70,14 @@ export function WhisperPlaygroundPage() {
     setNotice('')
     setResult('')
     setTranscript('')
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(
+        'Microphone access is unavailable in this browser context (browsers block live mic on HTTP IP addresses). Please use the "Upload Audio File" or "Text Format" tab to test.',
+      )
+      return
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const media = new MediaRecorder(stream)
@@ -72,7 +95,10 @@ export function WhisperPlaygroundPage() {
       setPhase('recording')
       timer.current = window.setInterval(() => setSeconds((val) => val + 1), 1000)
     } catch (err) {
-      fail(err, 'Microphone permission denied. Allow mic access in your browser.')
+      fail(
+        err,
+        'Microphone permission was denied. Allow mic permissions in your browser or switch to "Upload Audio".',
+      )
     }
   }
 
@@ -94,13 +120,13 @@ export function WhisperPlaygroundPage() {
 
   async function sendRecording(blob: Blob) {
     if (blob.size < 800) {
-      setError('Recording was too short. Speak a little longer.')
+      setError('Recording was too short. Speak a little longer (at least 1-2 seconds).')
       setPhase('idle')
       return
     }
 
     setPhase('transcribing')
-    setNotice('Transcribing with Tara on local RTX 3060…')
+    setNotice('Transcribing…')
 
     try {
       const base64Audio = await blobToBase64(blob)
@@ -112,51 +138,60 @@ export function WhisperPlaygroundPage() {
       )
 
       if (!rawText.trim()) {
-        setError('No words recognized. Try speaking closer to the mic.')
+        setError('No words were recognized. Try speaking closer to the microphone.')
         setPhase('idle')
         setNotice('')
         return
       }
 
       setTranscript(rawText)
-      setPhase('formatting')
-      setNotice('Formatting with Qwen 2.5 7B…')
-
-      const formatted = await runAndWait(
-        'whisperflow',
-        'format',
-        { text: rawText, tone, script },
-        (msg) => setNotice(msg),
-      )
-
-      setResult(formatted)
+      setResult(rawText)
       setPhase('done')
       setNotice('')
     } catch (err) {
-      fail(err, 'The app is currently not working. Check model links in Admin.')
+      fail(err, 'The model gateway is currently unreachable. Check model tunnels in Admin.')
     }
   }
 
-  async function formatTextInput() {
-    if (!inputText.trim()) return
+  async function handleAudioFileUpload(file: File) {
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadedFile(null)
+      setError('Audio files must be 2 MB or smaller.')
+      setPhase('idle')
+      setNotice('')
+      return
+    }
+    setUploadedFile(file)
     setError('')
-    setNotice('Formatting with Qwen 2.5 7B…')
-    setPhase('formatting')
+    setNotice('Reading audio file…')
     setResult('')
+    setTranscript('')
+    setPhase('transcribing')
 
     try {
-      const formatted = await runAndWait(
+      const base64Audio = await blobToBase64(file)
+      setNotice('Transcribing…')
+
+      const rawText = await runAndWait(
         'whisperflow',
-        'format',
-        { text: inputText, tone, script },
+        'transcribe',
+        { audio_base64: base64Audio },
         (msg) => setNotice(msg),
       )
-      setResult(formatted)
-      setTranscript(inputText)
+
+      if (!rawText.trim()) {
+        setError('No speech was detected in the uploaded audio file.')
+        setPhase('idle')
+        setNotice('')
+        return
+      }
+
+      setTranscript(rawText)
+      setResult(rawText)
       setPhase('done')
       setNotice('')
     } catch (err) {
-      fail(err, 'Formatting request failed.')
+      fail(err, 'Audio transcription failed. Make sure the speech gateway is running.')
     }
   }
 
@@ -167,6 +202,7 @@ export function WhisperPlaygroundPage() {
     setError('')
     setNotice('')
     setSeconds(0)
+    setUploadedFile(null)
   }
 
   const formatTimer = (sec: number) => {
@@ -178,164 +214,125 @@ export function WhisperPlaygroundPage() {
   return (
     <DashboardLayout>
       <div className="space-y-10">
-        {/* Breadcrumb & Navigation */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-navy-border/60 pb-4">
-          <div className="flex items-center gap-2 font-mono text-xs text-slate">
-            <Link to="/dashboard" className="hover:text-green">Dashboard</Link>
-            <span>/</span>
-            <Link to="/products/whisperflow" className="hover:text-green">WhisperFlow</Link>
-            <span>/</span>
-            <span className="text-green font-medium">Playground</span>
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-navy-border pb-6">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green-tint px-3 py-1 text-xs font-semibold text-green">
+              <Play className="h-3.5 w-3.5 text-green" />
+              <span>Interactive Testbench</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+              WhisperFlow Playground
+            </h1>
+            <p className="text-sm text-slate">
+              Speak or upload audio. The words are written down.
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
             <Link
               to="/products/whisperflow"
-              className="inline-flex items-center gap-1.5 rounded-md border border-navy-border bg-light-navy/50 px-3 py-1.5 font-mono text-xs text-light-slate hover:border-green/40 hover:text-green"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-navy-border bg-light-navy px-3.5 py-2 text-xs font-medium text-white hover:border-green/40 hover:text-green transition-all"
             >
               <FileText className="h-3.5 w-3.5" />
-              <span>Project Details</span>
+              <span>Specs</span>
             </Link>
             <Link
               to="/products/whisperflow/docs"
-              className="inline-flex items-center gap-1.5 rounded-md border border-navy-border bg-light-navy/50 px-3 py-1.5 font-mono text-xs text-light-slate hover:border-green/40 hover:text-green"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-navy-border bg-light-navy px-3.5 py-2 text-xs font-medium text-white hover:border-green/40 hover:text-green transition-all"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              <span>API Reference</span>
+              <span>Docs</span>
             </Link>
             <Link
               to="/products/whisperflow/download"
-              className="inline-flex items-center gap-1.5 rounded-md bg-green px-3 py-1.5 font-mono text-xs font-semibold text-navy hover:bg-green/90"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-green px-3.5 py-2 text-xs font-semibold text-ink hover:bg-green/90 transition-all shadow-sm"
             >
               <Download className="h-3.5 w-3.5" />
-              <span>Download</span>
+              <span>Get Apps</span>
             </Link>
           </div>
         </div>
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green-tint px-3 py-1 font-mono text-xs text-green">
-              <Play className="h-3.5 w-3.5 text-green" />
-              <span>Interactive Testbench</span>
-            </div>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-lightest-slate sm:text-4xl">
-              WhisperFlow Playground
-            </h1>
-            <p className="mt-1 text-sm text-slate">
-              Try dictation directly in your browser. Signed-in sessions use your active SSO account.
-            </p>
-          </div>
+        {/* Mode Switcher Tabs */}
+        <div className="flex flex-wrap gap-2 rounded-2xl border border-navy-border bg-navy/80 p-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setMode('voice')
+              setError('')
+            }}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
+              mode === 'voice'
+                ? 'bg-green-tint text-green border border-green/30 shadow-sm'
+                : 'text-slate hover:text-white'
+            }`}
+          >
+            <Mic className="h-4 w-4" />
+            <span>Microphone Dictation</span>
+          </button>
 
-          {/* Mode Switcher: Voice vs Text */}
-          <div className="flex items-center rounded-xl border border-navy-border bg-navy/80 p-1">
-            <button
-              type="button"
-              onClick={() => setMode('voice')}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 font-mono text-xs font-semibold transition-all ${
-                mode === 'voice'
-                  ? 'bg-green-tint text-green border border-green/30'
-                  : 'text-slate hover:text-light-slate'
-              }`}
-            >
-              <Mic className="h-3.5 w-3.5" />
-              <span>Microphone</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('text')}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 font-mono text-xs font-semibold transition-all ${
-                mode === 'text'
-                  ? 'bg-green-tint text-green border border-green/30'
-                  : 'text-slate hover:text-light-slate'
-              }`}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              <span>Text Format</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('upload')
+              setError('')
+            }}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
+              mode === 'upload'
+                ? 'bg-green-tint text-green border border-green/30 shadow-sm'
+                : 'text-slate hover:text-white'
+            }`}
+          >
+            <Upload className="h-4 w-4" />
+            <span>Upload Audio File</span>
+          </button>
+
         </div>
 
-        {/* Configuration Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-2xl border border-navy-border bg-light-navy/50 p-4 sm:p-5">
-          {/* Script Selection */}
-          <div>
-            <label className="font-mono text-xs font-semibold text-lightest-slate">Output Script</label>
-            <p className="text-[11px] text-slate mt-0.5 mb-2">How Hindi words should appear in text</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setScript('roman')}
-                className={`rounded-lg px-3 py-2 font-mono text-xs text-left transition-all ${
-                  script === 'roman'
-                    ? 'border border-green/40 bg-green-tint text-green font-medium'
-                    : 'border border-navy-border bg-navy/60 text-slate hover:text-light-slate'
-                }`}
-              >
-                <div>Roman Hinglish</div>
-                <div className="text-[10px] text-slate font-normal">e.g. namaste dosto</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setScript('devanagari')}
-                className={`rounded-lg px-3 py-2 font-mono text-xs text-left transition-all ${
-                  script === 'devanagari'
-                    ? 'border border-green/40 bg-green-tint text-green font-medium'
-                    : 'border border-navy-border bg-navy/60 text-slate hover:text-light-slate'
-                }`}
-              >
-                <div>Devanagari</div>
-                <div className="text-[10px] text-slate font-normal">e.g. नमस्ते दोस्तों</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Tone Selection */}
-          <div>
-            <label className="font-mono text-xs font-semibold text-lightest-slate">Formatting Tone</label>
-            <p className="text-[11px] text-slate mt-0.5 mb-2">How punctuation and lists are styled</p>
-            <div className="grid grid-cols-3 gap-2">
-              {(['whatsapp', 'work', 'points'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTone(t)}
-                  className={`rounded-lg px-3 py-2 font-mono text-xs capitalize text-center transition-all ${
-                    tone === t
-                      ? 'border border-green/40 bg-green-tint text-green font-medium'
-                      : 'border border-navy-border bg-navy/60 text-slate hover:text-light-slate'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Main Interactive Stage */}
-        <div className="rounded-3xl border border-navy-border/80 bg-light-navy/30 p-6 sm:p-10 space-y-8">
-          {mode === 'voice' ? (
-            /* Voice Mode Stage */
+        {/* Main Stage Panel */}
+        <div className="rounded-3xl border border-navy-border bg-light-navy/40 p-6 sm:p-10 space-y-8 backdrop-blur-sm">
+          {/* STAGE 1: VOICE MODE */}
+          {mode === 'voice' && (
             <div className="flex flex-col items-center justify-center py-6 text-center space-y-6">
+              {!isSecureOrLocal && (
+                <div className="w-full rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-300 flex items-start gap-3 text-left">
+                  <Info className="h-5 w-5 shrink-0 mt-0.5 text-amber-400" />
+                  <div className="space-y-1">
+                    <p className="font-semibold">Notice for HTTP Access</p>
+                    <p className="text-amber-200/90 leading-relaxed">
+                      Browsers restrict live microphone access when loaded over plain HTTP IP addresses. If your browser blocks the microphone, use the{' '}
+                      <button
+                        type="button"
+                        onClick={() => setMode('upload')}
+                        className="underline font-bold text-white hover:text-green"
+                      >
+                        Upload Audio File
+                      </button>{' '}
+                      tab or test on localhost / HTTPS.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {phase === 'recording' ? (
                 <div className="space-y-4">
-                  <div className="relative mx-auto flex h-28 w-28 items-center justify-center">
+                  <div className="relative mx-auto flex h-32 w-32 items-center justify-center">
                     <span className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" />
                     <button
                       type="button"
                       onClick={stopRecording}
                       className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full bg-red-500 text-white shadow-2xl transition-transform active:scale-95"
+                      title="Stop recording"
                     >
                       <Square className="h-8 w-8 fill-current" />
                     </button>
                   </div>
                   <div>
-                    <div className="font-mono text-xl font-bold text-red-400">
+                    <div className="font-mono text-2xl font-bold text-red-400">
                       Recording: {formatTimer(seconds)}
                     </div>
-                    <p className="text-xs text-slate mt-1">Tap stop when finished speaking</p>
+                    <p className="text-xs text-slate mt-1">Tap red button when finished speaking</p>
                   </div>
                 </div>
               ) : (
@@ -343,92 +340,133 @@ export function WhisperPlaygroundPage() {
                   <button
                     type="button"
                     onClick={() => void startRecording()}
-                    disabled={phase === 'transcribing' || phase === 'formatting'}
-                    className="group relative mx-auto flex h-28 w-28 items-center justify-center rounded-full border-2 border-green/40 bg-green-tint text-green shadow-xl transition-all hover:scale-105 hover:border-green hover:bg-green hover:text-navy active:scale-95 disabled:opacity-50"
+                    disabled={phase === 'transcribing'}
+                    className="group relative mx-auto flex h-32 w-32 items-center justify-center rounded-full border-2 border-green/40 bg-green-tint text-green shadow-xl transition-all hover:scale-105 hover:border-green hover:bg-green hover:text-ink active:scale-95 disabled:opacity-50"
                   >
-                    <Mic className="h-10 w-10 transition-transform group-hover:scale-110" />
+                    <Mic className="h-12 w-12 transition-transform group-hover:scale-110" />
                   </button>
-                  <div>
-                    <h3 className="text-lg font-bold text-lightest-slate">Tap to Record Audio</h3>
-                    <p className="text-xs text-slate mt-1">
-                      Speak in Hindi, English, or mixed Hinglish. Try numbering points: "point 1, point 2..."
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-white">Tap to Record Microphone</h3>
+                    <p className="text-xs text-slate max-w-md mx-auto leading-relaxed">
+                      Speak in Hindi, English, or mixed Hinglish. Try saying: "point 1 server stays at home, point 2 keyboard is for android"
                     </p>
                   </div>
                 </div>
               )}
             </div>
-          ) : (
-            /* Text Input Mode Stage */
+          )}
+
+          {/* STAGE 2: AUDIO FILE UPLOAD */}
+          {mode === 'upload' && (
             <div className="space-y-4">
-              <label className="font-mono text-xs font-semibold text-lightest-slate">
-                Enter Raw Speech Transcript
-              </label>
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                rows={4}
-                className="w-full rounded-xl border border-navy-border bg-navy px-4 py-3 font-mono text-xs text-lightest-slate outline-none focus:border-green"
-                placeholder="e.g. point 1 server ghar pe rahega point 2 keyboard android ke liye hai"
-              />
-              <button
-                type="button"
-                onClick={() => void formatTextInput()}
-                disabled={phase === 'formatting'}
-                className="inline-flex items-center gap-2 rounded-xl bg-green px-5 py-2.5 font-mono text-xs font-semibold text-navy hover:bg-green/90 disabled:opacity-50"
+              <div>
+                <label className="text-sm font-bold text-white">Upload Voice Audio File</label>
+                <p className="text-xs text-slate mt-0.5">
+                  Supports WAV, MP3, M4A, WebM, and OGG. Maximum size is 2 MB.
+                </p>
+              </div>
+
+              <label
+                className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-navy-border bg-navy/60 p-8 cursor-pointer hover:border-green/50 hover:bg-navy transition-all text-center"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  const f = e.dataTransfer.files?.[0]
+                  if (f) void handleAudioFileUpload(f)
+                }}
               >
-                <Sparkles className="h-4 w-4" />
-                <span>Format Text with Qwen</span>
-              </button>
+                <FileAudio className="h-10 w-10 text-green mb-2" />
+                <span className="text-sm font-semibold text-white">
+                  {uploadedFile ? uploadedFile.name : 'Choose an audio file or drag & drop'}
+                </span>
+                <span className="text-xs text-slate mt-1">WAV, MP3, M4A, WebM, OGG</span>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) void handleAudioFileUpload(f)
+                  }}
+                  className="sr-only"
+                />
+              </label>
+
+              {uploadedFile && (
+                <div className="flex items-center justify-between rounded-xl border border-navy-border bg-navy p-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="h-4 w-4 text-green" />
+                    <span className="font-semibold text-white truncate max-w-xs">{uploadedFile.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleAudioFileUpload(uploadedFile)}
+                    disabled={phase === 'transcribing'}
+                    className="rounded-lg bg-green px-3 py-1 text-xs font-semibold text-ink hover:bg-green/90 disabled:opacity-50"
+                  >
+                    Re-Transcribe
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Status Message / Pipeline Progress */}
+          {/* Pipeline Notice / Progress Indicator */}
           {notice && (
-            <div className="flex items-center justify-center gap-3 rounded-xl border border-green/30 bg-green-tint px-4 py-3 font-mono text-xs text-green animate-pulse">
-              <span className="h-2 w-2 rounded-full bg-green" />
+            <div className="flex items-center justify-center gap-3 rounded-2xl border border-green/30 bg-green-tint px-5 py-3.5 text-sm font-semibold text-green animate-pulse">
+              <span className="h-2.5 w-2.5 rounded-full bg-green" />
               <span>{notice}</span>
             </div>
           )}
 
-          {/* Error Message */}
+          {/* Error Message Box */}
           {error && (
-            <div className="flex items-center gap-3 rounded-xl border border-[#ff8b8b]/40 bg-[#ff8b8b]/10 p-4 text-xs text-[#ff8b8b]">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <div className="flex-1">
-                <p className="font-semibold">Pipeline Error</p>
-                <p className="mt-0.5">{error}</p>
+            <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-5 text-sm text-red-300 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+              <div className="space-y-1 flex-1">
+                <p className="font-bold text-red-200">Execution Notice</p>
+                <p className="text-xs leading-relaxed text-red-300/90">{error}</p>
               </div>
             </div>
           )}
 
           {/* Result Output Card */}
           {result && (
-            <div className="rounded-2xl border border-green/30 bg-navy/90 p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green" />
-                  <span className="font-mono text-xs font-semibold text-green">Formatted Result</span>
+            <div className="rounded-3xl border border-green/40 bg-navy p-6 sm:p-8 space-y-5 shadow-2xl">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-navy-border/60 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="h-5 w-5 text-green" />
+                  <span className="text-sm font-bold text-white">Written text</span>
+                  <span className="rounded-full bg-green/10 border border-green/30 px-2 py-0.5 text-[10px] font-semibold text-green uppercase">
+                    Ready
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CopyButton text={result} label="Copy Output" />
+                  <CopyButton text={result} label="Copy text" />
                   <button
                     type="button"
                     onClick={reset}
-                    className="rounded-md border border-navy-border px-2.5 py-1.5 font-mono text-xs text-slate hover:text-white"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-navy-border bg-light-navy px-3 py-1.5 text-xs font-medium text-slate hover:text-white"
                   >
-                    Reset
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Reset</span>
                   </button>
                 </div>
               </div>
 
-              <div className="whitespace-pre-wrap rounded-xl border border-navy-border bg-light-navy/40 p-4 font-mono text-sm leading-relaxed text-lightest-slate">
+              {/* Formatted Output Area */}
+              <div className="whitespace-pre-wrap rounded-2xl border border-navy-border bg-light-navy/50 p-5 text-base sm:text-lg leading-relaxed text-white font-medium select-all">
                 {result}
               </div>
 
+              {/* Comparison With Raw Transcript */}
               {transcript && transcript !== result && (
-                <div className="pt-2 border-t border-navy-border/60">
-                  <span className="font-mono text-[11px] text-slate">Raw Audio Transcript:</span>
-                  <p className="mt-1 font-mono text-xs text-light-slate italic">"{transcript}"</p>
+                <div className="pt-3 border-t border-navy-border/60 space-y-1">
+                  <span className="text-xs font-semibold text-slate uppercase tracking-wider">
+                    Raw Audio Transcript:
+                  </span>
+                  <p className="text-xs text-light-slate italic font-mono bg-navy/60 p-3 rounded-xl border border-navy-border/60">
+                    "{transcript}"
+                  </p>
                 </div>
               )}
             </div>

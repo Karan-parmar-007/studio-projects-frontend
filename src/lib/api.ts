@@ -59,6 +59,7 @@ export type Project = {
   tagline: string
   description: string
   status: 'live' | 'soon'
+  enabled?: boolean
   page: string
   playground: boolean
   apps: string[]

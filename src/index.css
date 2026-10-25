@@ -1,37 +1,55 @@
 @import "tailwindcss";
 
 @theme {
-  --color-navy: #0a192f;
-  --color-light-navy: #112240;
-  --color-lightest-navy: #233554;
-  --color-navy-border: #172a45;
-  --color-slate: #8892b0;
-  --color-light-slate: #a8b2d1;
-  --color-lightest-slate: #ccd6f6;
-  --color-white: #e6f1ff;
-  --color-green: #64ffda;
-  --color-green-tint: rgba(100, 255, 218, 0.1);
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-ink: #13261c;
+  --color-navy: #e7eee9;
+  --color-light-navy: #f4f7f5;
+  --color-lightest-navy: #d5dfd8;
+  --color-navy-border: #c9d5cd;
+  --color-navy-border-hover: #b3c2b8;
+  --color-slate: #4d5e56;
+  --color-light-slate: #1b2b24;
+  --color-lightest-slate: #122019;
+  --color-white: #122019;
+  --color-green: #0c8a62;
+  --color-green-hover: #0a7352;
+  --color-green-tint: rgba(12, 138, 98, 0.12);
+  --color-green-border: rgba(12, 138, 98, 0.32);
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   --ease-chiang: cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light;
+  }
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
+    html {
+      scroll-behavior: auto;
+    }
   }
   body {
     margin: 0;
     min-height: 100vh;
     font-family: var(--font-sans);
     background: var(--color-navy);
-    color: var(--color-slate);
+    color: var(--color-light-slate);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  #root { min-height: 100vh; }
-  a { color: inherit; text-decoration: none; }
-  button, input, textarea, select { font: inherit; }
+  #root {
+    min-height: 100vh;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  button, input, textarea, select {
+    font: inherit;
+  }
   :focus-visible {
     outline: 2px solid var(--color-green);
     outline-offset: 2px;
@@ -45,10 +63,21 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(900px 420px at 80% -10%, rgba(100, 255, 218, 0.08), transparent 55%),
-    linear-gradient(180deg, #0a192f 0%, #020c1b 100%);
+    radial-gradient(820px 360px at 100% -8%, rgba(12, 138, 98, 0.07), transparent 62%),
+    linear-gradient(180deg, #eef3ef 0%, #e4ebe6 100%);
 }
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #0a192f; }
-::-webkit-scrollbar-thumb { background: #172a45; border-radius: 4px; }
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #e4ebe6;
+}
+::-webkit-scrollbar-thumb {
+  background: #b7c4bc;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b7c4bc;
+}

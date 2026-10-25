@@ -28,12 +28,14 @@ export function CopyButton({
       type="button"
       onClick={() => void onClick()}
       title={label}
-      className={`inline-flex items-center gap-1.5 rounded-md border border-navy-border bg-navy/60 px-2.5 py-1.5 font-mono text-xs text-light-slate transition-all hover:border-green/40 hover:bg-light-navy hover:text-green active:scale-95 ${
-        copied ? 'border-green/60 bg-green-tint text-green' : ''
+      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
+        copied
+          ? 'border-green/50 bg-green-tint text-green shadow-sm shadow-green/20'
+          : 'border-navy-border bg-navy/80 text-slate hover:border-green/40 hover:bg-light-navy hover:text-white'
       } ${className}`}
     >
       {copied ? <Check className="h-3.5 w-3.5 text-green" /> : <Copy className="h-3.5 w-3.5" />}
-      {!iconOnly && <span>{copied ? 'Copied' : label}</span>}
+      {!iconOnly && <span>{copied ? 'Copied!' : label}</span>}
     </button>
   )
 }

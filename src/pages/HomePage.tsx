@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Sparkles, Key, Radio, Cpu, Layers } from 'lucide-react'
-import { FadeIn, Stagger, StaggerItem } from '@/components/Fade'
+import { ArrowRight, KeyRound, Layers, MessageSquare, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/components/Auth'
-import { api, type Project } from '@/lib/api'
+import { FadeIn } from '@/components/Fade'
 import { sso } from '@/lib/sso'
 
 const steps = [
@@ -11,227 +9,108 @@ const steps = [
     n: '01',
     icon: Layers,
     title: 'Pick a product',
-    body: 'Every product has a dedicated overview, an interactive playground, and comprehensive API documentation.',
+    body: 'WhisperFlow turns speech into text. LLM answers a message.',
   },
   {
     n: '02',
-    icon: Key,
-    title: 'Generate one key',
-    body: 'A single API key powers all Studio products across the Android bubble, the desktop app, or your own code.',
+    icon: KeyRound,
+    title: 'Generate an API key',
+    body: 'One key works for every product, in the browser or in your own code.',
   },
   {
     n: '03',
-    icon: Cpu,
-    title: 'Run on your hardware',
-    body: 'Speech stays local on your RTX 3060 with zero cloud telemetry. LLM shaping routes locally first with private VPS failover.',
+    icon: MessageSquare,
+    title: 'Call the API',
+    body: 'The docs show the request. Send it, and read the reply.',
   },
 ]
 
 export function HomePage() {
   const { user, status } = useAuth()
-  const [projects, setProjects] = useState<Project[] | null>(null)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    api<Project[]>('/projects')
-      .then(setProjects)
-      .catch((err: Error) => setError(err.message))
-  }, [])
-
   const signedIn = status === 'authenticated' && Boolean(user)
+  const dashboard = signedIn ? '/dashboard' : sso.loginUrl('/dashboard')
 
   return (
-    <div className="py-6 sm:py-12">
-      {/* Hero Section */}
-      <Stagger delay={0.05}>
-        <StaggerItem>
-          <div className="inline-flex items-center gap-2 rounded-full border border-green/30 bg-green-tint px-3.5 py-1.5 font-mono text-xs text-green backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-green animate-pulse" />
-            AI services for the karanparmar.in ecosystem
-          </div>
-        </StaggerItem>
-
-        <StaggerItem>
-          <h1 className="mt-6 max-w-4xl text-[clamp(40px,7vw,72px)] font-extrabold leading-[1.05] tracking-tight text-lightest-slate">
-            Studio<span className="text-green">.</span>
-          </h1>
-        </StaggerItem>
-
-        <StaggerItem>
-          <h2 className="mt-4 max-w-2xl text-[clamp(22px,3.5vw,36px)] font-bold leading-tight text-slate">
-            Self-hosted AI products you can try for free, with one API key for all of them.
-          </h2>
-        </StaggerItem>
-
-        <StaggerItem>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-light-slate">
-            Run cutting-edge speech transcription and LLM formatting on machines you control. Zero telemetry, local GPU first, and native client apps.
-          </p>
-        </StaggerItem>
-
-        <StaggerItem>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            {signedIn ? (
-              <Link
-                to="/dashboard"
-                className="group inline-flex items-center gap-2.5 rounded-lg bg-green px-7 py-3.5 font-mono text-sm font-semibold text-navy transition-all duration-200 hover:bg-green/90 hover:shadow-lg hover:shadow-green/20 active:scale-95"
-              >
-                <span>Go to Dashboard</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            ) : (
-              <>
-                <a
-                  href={sso.signupUrl('/dashboard')}
-                  className="inline-flex items-center gap-2 rounded-lg bg-green px-7 py-3.5 font-mono text-sm font-semibold text-navy transition-all duration-200 hover:bg-green/90 hover:shadow-lg hover:shadow-green/20 active:scale-95"
-                >
-                  <span>Sign up</span>
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-                <a
-                  href={sso.loginUrl('/dashboard')}
-                  className="inline-flex items-center rounded-lg border border-navy-border bg-light-navy/50 px-6 py-3.5 font-mono text-sm text-light-slate transition-all hover:border-green/40 hover:text-green active:scale-95"
-                >
-                  Sign in
-                </a>
-              </>
-            )}
-          </div>
-        </StaggerItem>
-      </Stagger>
-
-      {/* Featured Products Section */}
-      <section className="mt-24">
-        <div className="flex items-center justify-between border-b border-navy-border/60 pb-4">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-wider text-green">Available Services</p>
-            <h3 className="mt-1 text-2xl font-bold text-lightest-slate">Featured Products</h3>
-          </div>
-          {signedIn && (
+    <div className="space-y-16 py-6 sm:py-10">
+      <FadeIn className="space-y-6">
+        <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-6xl">
+          Welcome to Studio.
+        </h1>
+        <p className="max-w-2xl text-lg leading-relaxed text-slate">
+          Find a product, try it, and call it with your own API key. The documentation shows each request.
+        </p>
+        <div className="pt-2">
+          {signedIn ? (
             <Link
               to="/dashboard"
-              className="hidden sm:inline-flex items-center gap-1.5 font-mono text-xs text-light-slate hover:text-green"
+              className="inline-flex items-center gap-2 rounded-full bg-green px-6 py-3 text-sm font-semibold text-ink hover:bg-green-hover"
             >
-              <span>View all in Dashboard</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              Go to the dashboard
+              <ArrowRight className="h-4 w-4" />
             </Link>
+          ) : (
+            <a
+              href={dashboard}
+              className="inline-flex items-center gap-2 rounded-full bg-green px-6 py-3 text-sm font-semibold text-ink hover:bg-green-hover"
+            >
+              Go to the dashboard
+              <ArrowRight className="h-4 w-4" />
+            </a>
           )}
         </div>
+      </FadeIn>
 
-        {error ? <p className="mt-4 text-sm text-[#ff8b8b]">{error}</p> : null}
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {(projects ?? []).map((project, index) => (
-            <FadeIn key={project.slug} delay={0.1 + index * 0.08}>
-              <ProductCard project={project} signedIn={signedIn} />
-            </FadeIn>
-          ))}
-          {projects === null && !error ? (
-            <div className="flex items-center gap-3 py-8 font-mono text-sm text-green">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-green border-t-transparent" />
-              Loading products…
-            </div>
-          ) : null}
-        </div>
-      </section>
-
-      {/* Big Tech How It Works Steps */}
-      <section className="mt-24">
-        <div className="text-center max-w-2xl mx-auto">
-          <p className="font-mono text-xs uppercase tracking-wider text-green">Architecture & Setup</p>
-          <h3 className="mt-2 text-3xl font-bold text-lightest-slate">How Studio Works</h3>
-          <p className="mt-3 text-sm text-slate">
-            Built for developers who value full ownership of their data and hardware.
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {steps.map((step, index) => {
+      <FadeIn delay={0.08} className="space-y-6">
+        <h2 className="text-2xl font-semibold text-white">How it works</h2>
+        <ol className="grid gap-4 sm:grid-cols-3">
+          {steps.map((step) => {
             const Icon = step.icon
             return (
-              <FadeIn key={step.n} delay={0.15 + index * 0.08}>
-                <article className="h-full rounded-xl border border-navy-border bg-light-navy/50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-green/30 hover:bg-light-navy/80 hover:shadow-xl">
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-green/30 bg-green-tint text-green">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <span className="font-mono text-xs font-semibold text-green/60">{step.n}</span>
-                  </div>
-                  <h4 className="mt-5 text-lg font-bold text-lightest-slate">{step.title}</h4>
-                  <p className="mt-2 text-sm leading-relaxed text-slate">{step.body}</p>
-                </article>
-              </FadeIn>
+              <li key={step.n} className="rounded-2xl border border-navy-border bg-light-navy p-5">
+                <div className="flex items-center justify-between">
+                  <Icon className="h-5 w-5 text-green" />
+                  <span className="font-mono text-xs text-slate">{step.n}</span>
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate">{step.body}</p>
+              </li>
             )
           })}
-        </div>
-      </section>
+        </ol>
+      </FadeIn>
+
+      <FadeIn delay={0.16}>
+        <section className="overflow-hidden rounded-3xl border border-green-border bg-light-navy">
+          <div className="grid gap-10 p-8 sm:p-12 lg:grid-cols-[1.3fr_0.9fr] lg:items-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-green-border bg-green-tint px-3 py-1 text-sm font-medium text-green">
+                <ShieldCheck className="h-4 w-4" />
+                Privacy
+              </div>
+              <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                Nothing you send is stored.
+              </h2>
+              <p className="max-w-xl text-base leading-relaxed text-slate sm:text-lg">
+                A recording, a file, or a message is used to write the reply. When the reply is ready, that input is gone. There is no history of what you sent.
+              </p>
+            </div>
+            <ul className="space-y-3">
+              {[
+                'Speech and messages are not saved after the reply.',
+                'Nothing you send is used again later.',
+                'There is no inbox of past recordings to open.',
+              ].map((line) => (
+                <li
+                  key={line}
+                  className="rounded-2xl border border-navy-border bg-navy px-4 py-3 text-sm leading-relaxed text-light-slate"
+                >
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      </FadeIn>
     </div>
-  )
-}
-
-function ProductCard({ project, signedIn }: { project: Project; signedIn: boolean }) {
-  const target = signedIn ? '/products/whisperflow' : sso.loginUrl('/products/whisperflow')
-
-  return (
-    <article className="group relative flex flex-col justify-between h-full rounded-2xl border border-navy-border bg-light-navy/60 p-6 transition-all duration-300 hover:border-green/40 hover:bg-light-navy hover:shadow-2xl">
-      <div>
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-green/30 bg-green-tint text-green">
-              {project.slug === 'whisperflow' ? (
-                <Radio className="h-5 w-5" />
-              ) : (
-                <Sparkles className="h-5 w-5" />
-              )}
-            </div>
-            <div>
-              <h4 className="text-xl font-bold text-lightest-slate group-hover:text-white transition-colors">
-                {project.name}
-              </h4>
-              <p className="font-mono text-xs text-light-slate">{project.tagline}</p>
-            </div>
-          </div>
-          <span
-            className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-medium border ${
-              project.status === 'live'
-                ? 'border-green/30 bg-green-tint text-green'
-                : 'border-navy-border bg-navy text-slate'
-            }`}
-          >
-            {project.status === 'live' ? 'live · free playground' : 'coming soon'}
-          </span>
-        </div>
-
-        <p className="mt-4 text-sm leading-relaxed text-slate">{project.description}</p>
-
-        {project.apps.length > 0 && (
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] text-slate">Client Apps:</span>
-            {project.apps.map((app) => (
-              <span
-                key={app}
-                className="rounded-md border border-navy-border bg-navy/60 px-2 py-0.5 font-mono text-[10px] text-light-slate"
-              >
-                {app}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-6 pt-4 border-t border-navy-border/50 flex items-center justify-between">
-        {project.status === 'live' ? (
-          <Link
-            to={target}
-            className="inline-flex items-center gap-2 font-mono text-xs font-semibold text-green transition-all hover:gap-3"
-          >
-            <span>{signedIn ? 'Open Product Details' : 'Sign in to Explore'}</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        ) : (
-          <span className="font-mono text-xs text-slate/60">Coming soon to Studio</span>
-        )}
-      </div>
-    </article>
   )
 }

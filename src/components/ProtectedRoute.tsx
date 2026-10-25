@@ -19,7 +19,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-green border-t-transparent" />
-        <p className="font-mono text-xs text-light-slate">Verifying session…</p>
+        <p className="text-xs font-semibold text-slate">Verifying Studio session…</p>
       </div>
     )
   }
@@ -27,17 +27,17 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   if (!user) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center p-6 text-center">
-        <div className="w-full max-w-md rounded-2xl border border-navy-border bg-light-navy/80 p-8 shadow-2xl backdrop-blur-sm">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-green/30 bg-green-tint text-green">
-            <LogIn className="h-6 w-6" />
+        <div className="w-full max-w-md rounded-3xl border border-navy-border bg-light-navy/90 p-8 shadow-2xl backdrop-blur-md space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-green/30 bg-green-tint text-green shadow-sm">
+            <LogIn className="h-7 w-7" />
           </div>
-          <h2 className="mt-4 text-xl font-bold text-lightest-slate">Sign in Required</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate">
+          <h2 className="text-2xl font-bold text-white">Sign in Required</h2>
+          <p className="text-sm leading-relaxed text-slate">
             Studio products, docs, playground, and API keys are protected. Sign in with your SSO account to continue.
           </p>
           <a
             href={sso.loginUrl(returnTarget)}
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-green px-6 py-3 font-mono text-xs font-semibold text-navy transition-all hover:bg-green/90 active:scale-95"
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-green px-6 py-3 text-xs font-semibold text-ink transition-all hover:bg-green/90 shadow-md active:scale-95"
           >
             Sign in to Studio →
           </a>
