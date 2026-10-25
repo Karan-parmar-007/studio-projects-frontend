@@ -124,10 +124,13 @@ export async function runAndWait(
     method: 'POST',
     body: JSON.stringify(payload),
   })
+  // Keep the id from the first answer: a poll body may omit it.
+  let jobId = body.job_id
   for (let attempt = 0; attempt < 120; attempt += 1) {
-    if (body.status === 'queued' && body.job_id) {
+    jobId = body.job_id ?? jobId
+    if (body.status === 'queued' && jobId) {
       onStatus(`Your request is queued. ${body.lane ?? 'voice'} line, position ${body.position ?? 1}.`)
-    } else if (body.status === 'running' && body.job_id) {
+    } else if (body.status === 'running' && jobId) {
       onStatus('Your request is running.')
     } else if (body.status === 'done') {
       return body.result?.text ?? ''
@@ -137,7 +140,7 @@ export async function runAndWait(
       return body.text ?? ''
     }
     await new Promise((resolve) => setTimeout(resolve, 1500))
-    body = await api<ModelAnswer>(`/${project}/jobs/${body.job_id}`)
+    body = await api<ModelAnswer>(`/${project}/jobs/${jobId}`)
   }
   throw new ApiError(504, 'The queue did not finish in time')
 }
