@@ -21,12 +21,16 @@ import { isAppAdmin, sso } from '@/lib/sso'
 
 const PORTFOLIO_URL = 'https://karanparmar.in'
 
+/** A switched-off service only closes its Playground (the part that runs the model).
+ * Overview, Docs & API and Download stay readable so people can see what it is. */
 function pageBody(
   product: ProductNav | null,
   projects: ReturnType<typeof useServices>['projects'],
+  pathname: string,
   children: ReactNode,
 ) {
   if (!product || serviceOpen(projects, product.slug)) return children
+  if (!pathname.replace(/\/+$/, '').endsWith('/playground')) return children
   return <ServiceClosed name={product.name} />
 }
 
@@ -364,7 +368,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Page Main Content Container */}
         <main className="flex-1 w-full px-4 py-8 sm:px-8 sm:py-10 lg:px-12">
-          <FadeIn key={location.pathname}>{pageBody(current, projects, children)}</FadeIn>
+          <FadeIn key={location.pathname}>{pageBody(current, projects, location.pathname, children)}</FadeIn>
         </main>
       </div>
     </div>

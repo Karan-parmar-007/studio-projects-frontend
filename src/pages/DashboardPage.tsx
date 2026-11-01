@@ -39,11 +39,10 @@ export function DashboardPage() {
                     </span>
                   </div>
                   <h2 className="mt-4 text-xl font-semibold text-white">{product.name}</h2>
-                  {live ? (
-                    <p className="mt-2 text-sm leading-relaxed text-slate">{blurb}</p>
-                  ) : (
-                    <p className="mt-2 text-sm leading-relaxed text-slate">
-                      Contact Karan right now at {CONTACT_EMAIL}.
+                  <p className="mt-2 text-sm leading-relaxed text-slate">{blurb}</p>
+                  {live ? null : (
+                    <p className="mt-2 text-xs leading-relaxed text-slate">
+                      Playground is off right now. Contact Karan at {CONTACT_EMAIL}.
                     </p>
                   )}
                   <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-green">
