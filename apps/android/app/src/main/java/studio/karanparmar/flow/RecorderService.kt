@@ -16,6 +16,10 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Holds the microphone. Android only lets an app record while it is in the background
@@ -37,6 +41,7 @@ class RecorderService : Service() {
         private const val NOTE_ID = 7
         const val ACTION_STOP = "studio.karanparmar.flow.STOP"
         private const val MAX_MS = 5 * 60 * 1000L
+        private const val CHUNK_SECONDS = 20
 
         fun start(context: Context) {
             val intent = Intent(context, RecorderService::class.java)
@@ -130,16 +135,50 @@ class RecorderService : Service() {
         val pcm = PcmBuffer()
         val buf = ByteArray(min)
         val started = SystemClock.elapsedRealtime()
+        val chunkBytes = 16000 * 2 * CHUNK_SECONDS
+        // Chunks are transcribed one after another on this worker while you keep talking,
+        // so only the last piece and the format step are left when you stop.
+        val worker = Executors.newSingleThreadExecutor()
+        val parts = CopyOnWriteArrayList<String>()
+        val firstError = AtomicReference<String?>(null)
+        var sent = 0
         var shown = -1
+
+        fun submit(chunk: ByteArray) {
+            worker.execute {
+                if (firstError.get() != null) return@execute
+                try {
+                    val heard = FlowClient.transcribe(FlowClient.STUDIO, apiKey, chunk) {}
+                    if (heard.isNotBlank()) parts.add(heard)
+                } catch (exc: Exception) {
+                    firstError.compareAndSet(null, exc.message ?: "The request failed")
+                }
+            }
+        }
+
+        fun preview(): String {
+            val heard = parts.joinToString(" ")
+            if (heard.isBlank()) return ""
+            return "\n" + if (heard.length <= 90) heard else "…" + heard.takeLast(89)
+        }
+
         recorder.startRecording()
         try {
             while (listening && SystemClock.elapsedRealtime() - started < MAX_MS) {
                 val count = recorder.read(buf, 0, buf.size)
                 pcm.write(buf, count)
+                if (pcm.size() - sent >= chunkBytes) {
+                    val all = pcm.bytes()
+                    val cut = FlowClient.quietCut(all, sent, all.size)
+                    if (cut - sent >= 16000 * 2) {
+                        submit(all.copyOfRange(sent, cut))
+                        sent = cut
+                    }
+                }
                 val seconds = ((SystemClock.elapsedRealtime() - started) / 1000).toInt()
                 if (seconds != shown) {
                     shown = seconds
-                    listener.onStatus("Listening ${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}  ·  tap to stop")
+                    listener.onStatus("Listening ${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}  ·  tap to stop" + preview())
                 }
             }
         } finally {
@@ -151,11 +190,23 @@ class RecorderService : Service() {
         listener.onState(false, true)
         listener.onStatus("Transcribing…")
         try {
-            val take = FlowClient.dictate(FlowClient.STUDIO, apiKey, pcm.bytes(), script, listener::onStatus)
-            if (take.text.isNotBlank()) listener.onResult(take.text) else listener.onError(take.note)
+            val all = pcm.bytes()
+            if (all.size - sent >= (16000 * 2 * 0.4).toInt()) submit(all.copyOfRange(sent, all.size))
+            worker.shutdown()
+            worker.awaitTermination(5, TimeUnit.MINUTES)
+            firstError.get()?.let { throw IllegalStateException(it) }
+            val full = parts.joinToString(" ").trim()
+            if (full.isEmpty()) {
+                listener.onError("Didn't catch that. Tap the bubble and speak a little longer.")
+                return
+            }
+            listener.onStatus("Shaping the text…")
+            val shaped = FlowClient.format(FlowClient.STUDIO, apiKey, full, script, listener::onStatus)
+            listener.onResult(shaped.ifBlank { full })
         } catch (exc: Exception) {
             listener.onError(exc.message ?: "The request failed")
         } finally {
+            worker.shutdownNow()
             working = false
             listener.onState(false, false)
         }

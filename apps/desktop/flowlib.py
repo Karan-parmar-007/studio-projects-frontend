@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import sys
 import io
 import json
 import time
@@ -97,3 +98,32 @@ def transcribe(base: str, api_key: str, pcm: bytes, rate: int, on_status) -> str
 def format_text(base: str, api_key: str, text: str, script: str, tone: str, on_status) -> str:
     payload = {"text": text, "script": script, "tone": tone}
     return call_until_done(base, "/api/studio/v1/whisperflow/format", api_key, payload, on_status).strip()
+
+
+def quiet_cut(pcm: bytes, rate: int, start: int, end: int, search_seconds: float = 4.0, window_seconds: float = 0.3) -> int:
+    """Where to end a chunk: the quietest moment in the last few seconds before `end`.
+
+    Cutting on a pause keeps words whole, so the speech model never hears half of
+    "no, 8". Works on 16-bit mono PCM byte offsets and always returns an even offset
+    in (start, end]. Falls back to `end` when there is too little audio to choose from.
+    """
+    from array import array
+
+    end -= end % 2
+    window = int(rate * window_seconds) * 2
+    lo = max(start, end - int(rate * search_seconds) * 2)
+    lo += (lo - start) % 2
+    if end - lo < window * 2:
+        return end
+    samples = array("h")
+    samples.frombytes(pcm[lo:end])
+    if sys.byteorder == "big":
+        samples.byteswap()
+    step = max(1, int(rate * 0.05))  # slide 50 ms at a time
+    span = window // 2
+    best_at, best_energy = len(samples), None
+    for at in range(0, len(samples) - span + 1, step):
+        energy = sum(abs(v) for v in samples[at : at + span])
+        if best_energy is None or energy < best_energy:
+            best_energy, best_at = energy, at + span // 2
+    return lo + best_at * 2
