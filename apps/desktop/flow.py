@@ -15,7 +15,7 @@ import time
 import tkinter as tk
 from pathlib import Path
 
-from flowlib import format_text, transcribe
+from flowlib import format_text, quiet_cut, transcribe
 from hotkeys import mask, normalize, same
 from record import Mic
 
@@ -291,7 +291,7 @@ class App:
         self.toast.overrideredirect(True)
         self.toast.attributes("-topmost", True)
         self.toast.configure(bg="#0a192f")
-        self.toast.geometry("360x64+40+40")
+        self.toast.geometry("360x96+40+40")
         self.status = tk.Label(self.toast, text="", bg="#0a192f", fg="#64ffda", wraplength=340, justify="left", font=("Segoe UI", 11))
         self.status.pack(fill="both", expand=True, padx=12, pady=10)
         self.toast.withdraw()
@@ -398,8 +398,8 @@ class App:
     def _place_toast(self) -> None:
         self.toast.update_idletasks()
         x = self.toast.winfo_screenwidth() - 380
-        y = self.toast.winfo_screenheight() - 120
-        self.toast.geometry(f"360x64+{max(x, 0)}+{max(y, 0)}")
+        y = self.toast.winfo_screenheight() - 152
+        self.toast.geometry(f"360x96+{max(x, 0)}+{max(y, 0)}")
 
     def _hotkey_result(self, problems: list[str]) -> None:
         if problems:
@@ -510,7 +510,7 @@ class App:
         elapsed = self.mic.seconds()
         minutes, seconds = divmod(int(elapsed), 60)
         if not self.inflight:
-            self.set_status(f"Listening {minutes}:{seconds:02d}")
+            self.set_status(f"Listening {minutes}:{seconds:02d}" + self._preview())
         if elapsed >= MAX_SECONDS:
             self._finish()
             return
@@ -523,13 +523,21 @@ class App:
         pcm, rate = self.mic.snapshot()
         return max(0, (len(pcm) - self.sent) / float(rate * 2 or 1))
 
+    def _preview(self) -> str:
+        """The last few words heard so far (raw, before formatting), for the status popup."""
+        heard = " ".join(part.strip() for part in self.parts if part.strip())
+        if not heard:
+            return ""
+        tail = heard if len(heard) <= 90 else "…" + heard[-89:]
+        return "\n" + tail
+
     def _send_preview(self) -> None:
         pcm, rate = self.mic.snapshot()
-        chunk = pcm[self.sent :]
+        taken = quiet_cut(pcm, rate, self.sent, len(pcm))
+        chunk = pcm[self.sent : taken]
         if len(chunk) < rate:
             return
         self.inflight = True
-        taken = len(pcm)
 
         def work() -> None:
             try:
