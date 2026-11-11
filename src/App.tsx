@@ -16,6 +16,11 @@ import { LlmDocsPage } from '@/pages/LlmDocsPage'
 import { GmapsOverviewPage } from '@/pages/GmapsOverviewPage'
 import { GmapsPlaygroundPage } from '@/pages/GmapsPlaygroundPage'
 import { GmapsDocsPage } from '@/pages/GmapsDocsPage'
+import { RagOverviewPage } from '@/pages/RagOverviewPage'
+import { RagPlaygroundPage } from '@/pages/RagPlaygroundPage'
+import { RagDocsPage } from '@/pages/RagDocsPage'
+import { ChatbotOverviewPage } from '@/pages/ChatbotOverviewPage'
+import { ChatWidget } from '@/chat/ChatWidget'
 import { ServiceCatalogProvider } from '@/lib/services'
 
 export function App() {
@@ -125,6 +130,38 @@ export function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/products/rag"
+            element={
+              <ProtectedRoute>
+                <RagOverviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/rag/playground"
+            element={
+              <ProtectedRoute>
+                <RagPlaygroundPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/rag/docs"
+            element={
+              <ProtectedRoute>
+                <RagDocsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/chatbot"
+            element={
+              <ProtectedRoute>
+                <ChatbotOverviewPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Backwards-compatible aliases for /whisperflow-clone */}
           <Route
@@ -212,6 +249,8 @@ export function App() {
             }
           />
         </Routes>
+        {/* The site assistant: one instance on every page, signed in or not. */}
+        <ChatWidget />
       </BrowserRouter>
       </ServiceCatalogProvider>
     </AuthProvider>

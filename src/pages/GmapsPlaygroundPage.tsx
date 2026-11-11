@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { AlertCircle, BookOpen, Download, Loader2, Play, Search, Square, X } from 'lucide-react'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { ApiError } from '@/lib/api'
@@ -36,6 +36,10 @@ export function GmapsPlaygroundPage() {
   const [running, setRunning] = useState(false)
   const [target, setTarget] = useState<number | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const [params, setParams] = useSearchParams()
+  // Set by a prefilled link (the assistant's Run button): start once the form and quota are ready.
+  // State, not a ref: it must flip in the same render as the prefilled fields.
+  const [autorun, setAutorun] = useState(false)
 
   function reloadQuota() {
     gmapsQuota().then(setQuota).catch(() => undefined)
@@ -57,14 +61,59 @@ export function GmapsPlaygroundPage() {
       .then((items) => {
         if (!live) return
         setCities(items)
-        // Drop cities that are no longer in the chosen states.
-        setPickedCities((current) => current.filter((city) => items.includes(city)))
+        // Drop cities that are no longer in the chosen states (case-insensitive, so a
+        // prefilled "austin" becomes "Austin").
+        setPickedCities((current) =>
+          current.flatMap((city) => {
+            const hit = items.find((item) => item.toLowerCase() === city.toLowerCase())
+            return hit ? [hit] : []
+          }),
+        )
       })
       .catch(() => live && setCities([]))
     return () => {
       live = false
     }
   }, [pickedStates])
+
+  // Prefill from ?q=&states=&cities=&limit=&autorun=1 (states/cities repeat or are comma-separated),
+  // then clear the query so a reload does not run the search again.
+  useEffect(() => {
+    if (!params.has('q') && params.get('autorun') !== '1') return
+    const list = (key: string) =>
+      params
+        .getAll(key)
+        .flatMap((value) => value.split(','))
+        .map((value) => value.trim())
+        .filter(Boolean)
+    setTerm((params.get('q') ?? '').slice(0, 200))
+    setPickedStates(list('states'))
+    setPickedCities(list('cities'))
+    setLimit((params.get('limit') ?? '').replace(/[^\d]/g, '').slice(0, 2))
+    setAutorun(params.get('autorun') === '1')
+    setParams({}, { replace: true })
+  }, [params, setParams])
+
+  // Prefilled state names may differ in case from the list ("texas" -> "Texas").
+  useEffect(() => {
+    if (!states.length) return
+    setPickedStates((current) => {
+      const next = current.map((name) => states.find((option) => option.toLowerCase() === name.toLowerCase()) ?? name)
+      return next.some((name, index) => name !== current[index]) ? next : current
+    })
+  }, [states, pickedStates])
+
+  useEffect(() => {
+    if (!autorun || !quota || running) return
+    setAutorun(false)
+    if (quota.remaining <= 0) {
+      setError('You have no companies left today. It resets at midnight UTC.')
+      return
+    }
+    void start()
+    // start() reads the prefilled form from this render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autorun, quota, running])
 
   const remaining = quota?.remaining ?? 0
   const wanted = limit.trim() ? Number(limit) : null

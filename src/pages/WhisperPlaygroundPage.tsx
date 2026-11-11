@@ -118,6 +118,25 @@ export function WhisperPlaygroundPage() {
     return window.btoa(binary)
   }
 
+  /** Run the same formatting pass the apps use: fillers, lists, and spoken corrections
+   * ("6 or 7, or let it be, 8" becomes "8"). Falls back to the raw words if it fails. */
+  async function shape(rawText: string): Promise<string> {
+    setNotice('Shaping the text…')
+    try {
+      const shaped = await runAndWait(
+        'whisperflow',
+        'format',
+        { text: rawText, script: 'roman', tone: 'plain' },
+        (msg) => setNotice(msg),
+      )
+      return shaped.trim() || rawText
+    } catch (err) {
+      const why = err instanceof Error ? err.message : 'the formatter did not answer'
+      setError(`Could not shape the text (${why}). Showing the raw transcript instead.`)
+      return rawText
+    }
+  }
+
   async function sendRecording(blob: Blob) {
     if (blob.size < 800) {
       setError('Recording was too short. Speak a little longer (at least 1-2 seconds).')
@@ -145,7 +164,7 @@ export function WhisperPlaygroundPage() {
       }
 
       setTranscript(rawText)
-      setResult(rawText)
+      setResult(await shape(rawText))
       setPhase('done')
       setNotice('')
     } catch (err) {
@@ -187,7 +206,7 @@ export function WhisperPlaygroundPage() {
       }
 
       setTranscript(rawText)
-      setResult(rawText)
+      setResult(await shape(rawText))
       setPhase('done')
       setNotice('')
     } catch (err) {

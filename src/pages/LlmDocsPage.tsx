@@ -105,7 +105,7 @@ export function LlmDocsPage() {
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">LLM API</h1>
             <p className="max-w-3xl text-sm leading-relaxed text-slate">
-              Qwen 2.5 7B answers a message, or cleans up text you send. Use the same Studio API key as WhisperFlow. The model is the chatbot. There is no separate app to download.
+              Qwen 3.5 4B answers a message, or cleans up text you send. Use the same Studio API key as WhisperFlow. The model is the chatbot. There is no separate app to download.
             </p>
           </div>
           <Link

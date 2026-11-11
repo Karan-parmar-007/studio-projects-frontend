@@ -6,46 +6,63 @@ import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-data class Take(val text: String, val note: String)
-
 object FlowClient {
     /** Every request goes to the Studio server. Users only enter their API key. */
     val STUDIO: String = BuildConfig.STUDIO_URL.trimEnd('/')
 
-    fun dictate(
-        studio: String,
-        apiKey: String,
-        pcm: ByteArray,
-        script: String,
-        onStatus: (String) -> Unit,
-    ): Take {
-        val rate = 16000
-        val step = rate * 2 * 20
-        val parts = ArrayList<String>()
-        var offset = 0
-        var index = 1
-        while (offset < pcm.size) {
-            val end = minOf(pcm.size, offset + step)
-            val chunk = pcm.copyOfRange(offset, end)
-            if (chunk.size >= rate) {
-                onStatus("Transcribing $index…")
-                val text = call(studio, "/api/studio/v1/whisperflow/transcribe", apiKey, JSONObject().put("audio_base64", b64(wav(chunk))), onStatus)
-                if (text.isNotBlank()) parts.add(text.trim())
-                index += 1
-            }
-            offset = end
-        }
-        val full = parts.joinToString(" ").trim()
-        if (full.isEmpty()) return Take("", "Didn't catch that. Tap the mic and speak a little longer.")
-        onStatus("Shaping the text…")
-        val shaped = call(
+    /** Transcribe one chunk of 16 kHz mono PCM. Returns the raw words (may be empty). */
+    fun transcribe(studio: String, apiKey: String, pcm: ByteArray, onStatus: (String) -> Unit): String =
+        call(
+            studio,
+            "/api/studio/v1/whisperflow/transcribe",
+            apiKey,
+            JSONObject().put("audio_base64", b64(wav(pcm))),
+            onStatus,
+        ).trim()
+
+    /** Clean the whole transcript once: fillers, lists, and spoken corrections. */
+    fun format(studio: String, apiKey: String, text: String, script: String, onStatus: (String) -> Unit): String =
+        call(
             studio,
             "/api/studio/v1/whisperflow/format",
             apiKey,
-            JSONObject().put("text", full).put("script", script).put("tone", "plain"),
+            JSONObject().put("text", text).put("script", script).put("tone", "plain"),
             onStatus,
         )
-        return Take(shaped.ifBlank { full }, "Inserted.")
+
+    /**
+     * Where to end a chunk: the quietest moment in the last few seconds before [end].
+     * Cutting on a pause keeps words whole. Byte offsets into 16-bit mono PCM; the
+     * result is even and in (start, end].
+     */
+    fun quietCut(pcm: ByteArray, start: Int, end: Int, rate: Int = 16000, searchSeconds: Double = 4.0): Int {
+        val last = end - end % 2
+        val window = (rate * 0.3).toInt() * 2
+        var lo = maxOf(start, last - (rate * searchSeconds).toInt() * 2)
+        lo += (lo - start) % 2
+        if (last - lo < window * 2) return last
+        val samples = (last - lo) / 2
+        val span = window / 2
+        val step = maxOf(1, (rate * 0.05).toInt())
+        var bestAt = samples
+        var bestEnergy = Long.MAX_VALUE
+        var at = 0
+        while (at + span <= samples) {
+            var energy = 0L
+            var i = at
+            while (i < at + span) {
+                val index = lo + i * 2
+                val value = ((pcm[index + 1].toInt() shl 8) or (pcm[index].toInt() and 0xff)).toShort().toInt()
+                energy += kotlin.math.abs(value)
+                i++
+            }
+            if (energy < bestEnergy) {
+                bestEnergy = energy
+                bestAt = at + span / 2
+            }
+            at += step
+        }
+        return lo + bestAt * 2
     }
 
     private fun call(studio: String, path: String, apiKey: String, payload: JSONObject, onStatus: (String) -> Unit): String {
@@ -174,6 +191,8 @@ class PcmBuffer {
     fun write(buf: ByteArray, count: Int) {
         if (count > 0) out.write(buf, 0, count)
     }
+
+    fun size(): Int = out.size()
 
     fun bytes(): ByteArray = out.toByteArray()
 }

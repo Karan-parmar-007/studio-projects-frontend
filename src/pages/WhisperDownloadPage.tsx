@@ -70,7 +70,7 @@ export function WhisperDownloadPage() {
         <div className="max-w-3xl space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Download</h1>
           <p className="text-base leading-relaxed text-slate">
-            StudioFlow is the WhisperFlow app. It calls the same API as this site, with the same key, and Qwen 2.5 7B shapes the text. New builds are uploaded in the admin console.
+            StudioFlow is the WhisperFlow app. It calls the same API as this site, with the same key, and Qwen 3.5 4B shapes the text. New builds are uploaded in the admin console.
           </p>
         </div>
 
