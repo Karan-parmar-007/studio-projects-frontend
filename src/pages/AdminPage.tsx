@@ -24,6 +24,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { DashboardLayout } from '@/components/DashboardLayout'
+import { ChatbotAdminSection, RagAdminSection } from '@/components/AdminDocuments'
 import { useAuth } from '@/components/Auth'
 import { api, downloadUrl, type DownloadItem, type ModelLink, type Project } from '@/lib/api'
 import { productIcon } from '@/lib/products'
@@ -85,13 +86,13 @@ const linkMeta: Record<string, { title: string; desc: string; icon: typeof Cpu; 
     hint: 'Speech has no server fallback. Must point to your PC speech gateway tunnel.',
   },
   'llm:local': {
-    title: 'Local LLM Gateway (Qwen 2.5 7B)',
+    title: 'Local LLM Gateway (Qwen 3.5 4B)',
     desc: 'Local Ollama service running on your RTX 3060 PC.',
     icon: Cpu,
     hint: 'Tried first. If online and enabled, text shaping executes on your PC.',
   },
   'llm:remote': {
-    title: 'Remote LLM Gateway (VPS Qwen 2.5)',
+    title: 'Remote LLM Gateway (Oracle Qwen 3.5)',
     desc: 'Cloud/VPS Ollama gateway running on your secondary server.',
     icon: Server,
     hint: 'Automatic failover when your local PC is offline or queue is busy.',
@@ -916,7 +917,11 @@ export function AdminPage() {
           </div>
         )}
 
-        {projectSlug && projectSlug !== 'whisperflow' && projectSlug !== 'llm' && projectSlug !== 'gmaps' && (
+        {projectSlug === 'chatbot' && <ChatbotAdminSection />}
+
+        {projectSlug === 'rag' && <RagAdminSection />}
+
+        {projectSlug && !['whisperflow', 'llm', 'gmaps', 'chatbot', 'rag'].includes(projectSlug) && (
           <div className="rounded-3xl border border-navy-border bg-light-navy/40 p-12 text-center space-y-4">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-navy-border bg-navy text-slate">
               <Sparkles className="h-7 w-7" />

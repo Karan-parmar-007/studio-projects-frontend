@@ -73,7 +73,7 @@ export function LlmPlaygroundPage() {
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">LLM Playground</h1>
             <p className="text-sm leading-relaxed text-slate">
-              Try the chatbot, or paste text and have Qwen 2.5 7B clean it up. Nothing you send is stored.
+              Try the chatbot, or paste text and have Qwen 3.5 4B clean it up. Nothing you send is stored.
             </p>
           </div>
           <div className="flex items-center gap-2">

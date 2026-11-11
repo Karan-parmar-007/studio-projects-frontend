@@ -1,4 +1,4 @@
-import { BookOpen, Download, FileText, MapPin, MessageSquare, Play, Radio, Sparkles, type LucideIcon } from 'lucide-react'
+import { Bot, BookOpen, Download, FileText, MapPin, MessageSquare, Play, Radio, Sparkles, type LucideIcon } from 'lucide-react'
 import type { Project } from '@/lib/api'
 
 // Sub-pages of a product, relative to /products/<slug>. The catalog decides which products exist.
@@ -18,6 +18,8 @@ const KNOWN: Record<string, { name: string; icon: LucideIcon; pages: SubPage[]; 
   },
   llm: { name: 'LLM', icon: MessageSquare, pages: [OVERVIEW, PLAYGROUND, DOCS] },
   gmaps: { name: 'Maps Scraper', icon: MapPin, pages: [OVERVIEW, PLAYGROUND, DOCS] },
+  rag: { name: 'Ask a Document', icon: BookOpen, pages: [OVERVIEW, PLAYGROUND, DOCS] },
+  chatbot: { name: 'Assistant', icon: Bot, pages: [OVERVIEW] },
 }
 
 export type ProductPage = { label: string; crumb: string; path: string; icon: LucideIcon; aliases: string[] }

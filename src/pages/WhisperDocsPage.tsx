@@ -275,7 +275,7 @@ export function WhisperDocsPage() {
           </div>
 
           <p className="text-sm leading-relaxed text-slate">
-            Punctuates, converts lists into clean numbered points, and transliterates into Roman Hinglish or Devanagari script via Qwen 2.5 7B.
+            Punctuates, converts lists into clean numbered points, and transliterates into Roman Hinglish or Devanagari script via Qwen 3.5 4B.
           </p>
 
           {/* Parameters Table */}

@@ -10,7 +10,7 @@ const steps = [
   },
   {
     n: '02',
-    title: 'Qwen 2.5 7B answers',
+    title: 'Qwen 3.5 4B answers',
     body: 'The model replies from what it knows. It can also clean up text you paste in.',
   },
   {
@@ -28,7 +28,7 @@ export function LlmOverviewPage() {
           <div className="max-w-3xl space-y-3">
             <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">LLM</h1>
             <p className="text-base leading-relaxed text-slate sm:text-lg">
-              This is a chatbot. You write a message, and the model writes back. It works like the chats from OpenAI, Claude, and Gemini. The model here is Qwen 2.5 7B.
+              This is a chatbot. You write a message, and the model writes back. It works like the chats from OpenAI, Claude, and Gemini. The model here is Qwen 3.5 4B.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
