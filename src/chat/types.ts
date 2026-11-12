@@ -39,10 +39,10 @@ export type GmapsAction = {
   open_url: string
 }
 
-export type Stage = 'searching' | 'writing'
+export type Stage = 'searching' | 'waiting' | 'thinking' | 'writing'
 
 export type StreamEvent =
-  | { type: 'status'; data: { stage: Stage; ahead: number } }
+  | { type: 'status'; data: { stage: Stage; ahead: number; waited?: number } }
   | { type: 'sources'; data: { sources: Source[]; figures: Figure[] } }
   | { type: 'token'; data: { text: string } }
   | { type: 'tool'; data: { name: string; status: string } }
@@ -65,6 +65,8 @@ export type Answer = {
   figures: Figure[]
   stage: Stage | null
   ahead: number
+  /** Seconds since the question was sent, while waiting for the first word. */
+  waited: number
   tools: string[]
   actions: GmapsAction[]
   error: AnswerError | null
