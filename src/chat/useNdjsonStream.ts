@@ -10,6 +10,7 @@ export function emptyAnswer(): Answer {
     figures: [],
     stage: null,
     ahead: 0,
+    waited: 0,
     tools: [],
     actions: [],
     error: null,
@@ -121,7 +122,12 @@ export async function streamNdjson(
 export function applyEvent(answer: Answer, event: StreamEvent): Answer {
   switch (event.type) {
     case 'status':
-      return { ...answer, stage: event.data.stage, ahead: Number(event.data.ahead) || 0 }
+      return {
+        ...answer,
+        stage: event.data.stage,
+        ahead: Number(event.data.ahead) || 0,
+        waited: Number(event.data.waited) || 0,
+      }
     case 'sources':
       return { ...answer, sources: event.data.sources ?? [], figures: event.data.figures ?? [] }
     case 'token':
@@ -202,11 +208,22 @@ export function useNdjsonStream() {
   return { answer, running, run, stop, reset }
 }
 
-/** "Searching…", "Writing…", plus the line position when people are waiting. */
+/**
+ * What the person is waiting for: searching, their place in line (the model writes one answer at
+ * a time), the model reading the question (slow on the CPU server), or writing.
+ */
 export function progressLabel(answer: Answer): string {
-  const verb = answer.stage === 'writing' ? 'Writing…' : 'Searching…'
-  if (answer.ahead > 0) return `${verb} ${answer.ahead} ${answer.ahead === 1 ? 'person' : 'people'} ahead of you`
-  return verb
+  const seconds = answer.waited > 0 ? ` · ${answer.waited}s` : ''
+  switch (answer.stage) {
+    case 'waiting':
+      return `In line: ${answer.ahead} ${answer.ahead === 1 ? 'person' : 'people'} ahead of you${seconds}`
+    case 'thinking':
+      return `Thinking about your question…${seconds}`
+    case 'writing':
+      return 'Writing…'
+    default:
+      return 'Searching…'
+  }
 }
 
 /** Answer text without citation markers, for sending back as history. */
