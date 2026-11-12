@@ -78,6 +78,10 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
 }
 
+// Products with editable model links. The assistant and Ask a Document share one pair.
+const LINK_PRODUCTS = ['whisperflow', 'llm', 'chatbot', 'rag']
+const ASSISTANT_PRODUCTS = ['chatbot', 'rag']
+
 const linkMeta: Record<string, { title: string; desc: string; icon: typeof Cpu; hint: string }> = {
   'speech:local': {
     title: 'Local Speech Gateway (Tara CT2)',
@@ -172,7 +176,7 @@ export function AdminPage() {
 
   // Load project links and downloads when viewing whisperflow
   useEffect(() => {
-    if (!admin || (projectSlug !== 'whisperflow' && projectSlug !== 'llm')) return
+    if (!admin || !projectSlug || !LINK_PRODUCTS.includes(projectSlug)) return
     api<ModelLink[]>(`/${projectSlug}/links`)
       .then(setLinks)
       .catch((err: Error) => setError(err.message))
@@ -491,7 +495,7 @@ export function AdminPage() {
         )}
 
         {/* VIEW 2: Selected Project Secret Management: WhisperFlow */}
-        {(projectSlug === 'whisperflow' || projectSlug === 'llm') && (
+        {projectSlug && LINK_PRODUCTS.includes(projectSlug) && (
           <div className="space-y-12">
             {/* Section A: App Binaries & Releases */}
             {projectSlug === 'whisperflow' && <div className="space-y-6">
@@ -798,12 +802,18 @@ export function AdminPage() {
             <div className="space-y-6 pt-6 border-t border-navy-border">
               <div className="border-b border-navy-border pb-4">
                 <h2 className="text-2xl font-bold text-white">
-                  {projectSlug === 'llm' ? 'Oracle LLM' : 'WhisperFlow Gateway Tunnels'}
+                  {projectSlug === 'llm'
+                    ? 'Oracle LLM'
+                    : ASSISTANT_PRODUCTS.includes(projectSlug)
+                      ? 'Model links (shared by the Assistant and Ask a Document)'
+                      : 'WhisperFlow Gateway Tunnels'}
                 </h2>
                 <p className="text-xs text-slate mt-1">
                   {projectSlug === 'llm'
                     ? 'Every chat and cleanup request goes to this Oracle server. There is no local link.'
-                    : 'Speech stays on the faster local link. The language model can fall over to the second server.'}
+                    : ASSISTANT_PRODUCTS.includes(projectSlug)
+                      ? 'Answers, reranking and figure descriptions run on your PC while its link is on and it answers; otherwise on the LLM server. Embeddings never move. A changed link applies to the next question.'
+                      : 'Speech stays on the faster local link. The language model can fall over to the second server.'}
                 </p>
               </div>
 
