@@ -1,7 +1,10 @@
 // Shared with /home/karan/my_website/new_frontend/portfolio_frontend/src/components/chat: keep both copies in sync.
 import { createContext, useContext, useId, useState } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import 'katex/dist/katex.min.css'
 import type { Source } from './types'
 
 const CITE = '#cite-'
@@ -10,7 +13,7 @@ const CITE = '#cite-'
 function linkCitations(text: string, sources: Source[]): string {
   if (!sources.length) return text
   const known = new Set(sources.map((source) => source.n))
-  return text.replace(/\[(\d{1,3})\](?![(:[])/g, (whole, digits: string) =>
+  return text.replace(/\[(\d{1,3})\](?![(:])/g, (whole, digits: string) =>
     known.has(Number(digits)) ? `[${digits}](${CITE}${digits})` : whole,
   )
 }
@@ -98,15 +101,17 @@ const COMPONENTS: Components = {
   img: ({ alt }) => <span className="text-slate">{alt ? `[${alt}]` : ''}</span>,
 }
 
-/** Markdown answer text. No raw HTML; links open in a new tab; "[n]" becomes a source chip. */
-const PLUGINS = [remarkGfm]
+/** Markdown answer text. No raw HTML; links open in a new tab; "[n]" becomes a source chip;
+ *  $...$ and $$...$$ render as math (KaTeX). */
+const PLUGINS = [remarkGfm, remarkMath]
+const REHYPE = [rehypeKatex]
 const NO_SOURCES: Source[] = []
 
 export function Markdown({ text, sources = NO_SOURCES, className = '' }: { text: string; sources?: Source[]; className?: string }) {
   return (
     <SourcesContext.Provider value={sources}>
       <div className={`break-words ${className}`}>
-        <ReactMarkdown remarkPlugins={PLUGINS} skipHtml components={COMPONENTS}>
+        <ReactMarkdown remarkPlugins={PLUGINS} rehypePlugins={REHYPE} skipHtml components={COMPONENTS}>
           {linkCitations(text, sources)}
         </ReactMarkdown>
       </div>
